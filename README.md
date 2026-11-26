@@ -178,3 +178,37 @@ Semuanya dikira daripada masa `t` (deterministik) — jadi babak boleh dijeda, d
 
 ## Lesen
 Kod projek: MIT. Three.js: MIT (lihat `lib/three/LICENSE`).
+
+---
+
+## 🇲🇾 Siri Pendidikan: Realiti Kehidupan Malaysia
+
+| Episod | Halaman | Fail babak | Durasi |
+|---|---|---|---|
+| 1 · Apa Itu Pejabat Buruh? | `pejabat-buruh.html` | `js/babak/realiti-e1-pejabat-buruh.js` | 2:00 |
+| (Cerita asal) Amir & Cahaya Ajaib | `index.html` | `js/babak/episod1-babak1.js` | 0:45 |
+
+Senarai semua episod: `episod.html`.
+
+### Bagaimana episod pendidikan dimainkan tanpa mengubah enjin
+`js/main.js` mengimport `./babak/episod1-babak1.js`. Halaman `pejabat-buruh.html` menambah satu baris
+dalam *import map* yang menghalakan import itu ke fail babak pendidikan:
+```json
+"./js/babak/episod1-babak1.js": "./js/babak/realiti-e1-pejabat-buruh.js"
+```
+Oleh itu `main.js`, `Pengarah.js`, `Karakter.js` dan episod asal **tidak diubah**, dan `index.html`
+masih memainkan episod asal. Gaya panel fakta ada dalam `css/pendidikan.css` (dimuatkan oleh halaman pendidikan sahaja).
+
+### Menambah episod pendidikan baharu
+1. Salin `js/babak/realiti-e1-pejabat-buruh.js` → `realiti-e2-<topik>.js`, ubah kandungan.
+2. Salin `pejabat-buruh.html` → `<topik>.html`, tukar baris import map & teks skrin mula.
+3. Tambah kad dalam `episod.html`.
+
+Panduan masa (lihat komen dalam fail babak):
+- Dialog disusun automatik oleh `babakDialog()`: tempoh baris = huruf × 0.075 s + 0.75 s
+  (enjin menggerakkan bibir selama huruf × 0.068 s), jeda 0.35 s antara baris — ± 11 huruf/saat.
+- Setiap kad fakta perlu tajuk (`utama`) yang **unik**, dan masa paparan ≥ jumlah huruf ÷ 14 saat.
+- Sari kata: maksimum ± 80 aksara sebaris dialog.
+
+> ⚠️ Kandungan pendidikan ialah maklumat umum berdasarkan sumber rasmi (JTKSM, Akta Kerja 1955,
+> JTK Sabah, JTK Sarawak) yang disemak pada November 2026. Sahkan semula sebelum diterbitkan.
