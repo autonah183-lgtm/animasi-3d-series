@@ -212,3 +212,16 @@ Panduan masa (lihat komen dalam fail babak):
 
 > ⚠️ Kandungan pendidikan ialah maklumat umum berdasarkan sumber rasmi (JTKSM, Akta Kerja 1955,
 > JTK Sabah, JTK Sarawak) yang disemak pada November 2026. Sahkan semula sebelum diterbitkan.
+
+### Saluran & sumber rasmi yang dipaparkan dalam Episod 1
+| Perkara | Maklumat | Rujukan |
+|---|---|---|
+| Laman web JTKSM | jtksm.mohr.gov.my | JTKSM |
+| E-mel JTKSM | jtksm@mohr.gov.my | JTKSM — Ibu Pejabat & Cawangan |
+| Telefon ibu pejabat | 03-8000 8000 (Pegawai Khidmat Pelanggan: 03-8886 5192 / 5937) | JTKSM — Ibu Pejabat & Cawangan |
+| Aduan dalam talian | SISPAA KESUMA (mohr.spab.gov.my), aplikasi Working for Workers | JTKSM — Aduan |
+| Sabah / Sarawak | jtksabah.gov.my · jtkswk.gov.my (Ordinan Buruh dipinda, berkuat kuasa 1 Mei 2025) | KESUMA, JTK Sarawak |
+| Had RM4,000 | Pekerja bergaji > RM4,000 **tetap dilindungi** Akta Kerja 1955; hanya bayaran kerja lebih masa, kerja hari rehat, kerja hari kelepasan am & faedah penamatan tidak automatik (kecuali pekerja manual) | JTKSM — Soalan Lazim Akta Kerja 1955 (Pindaan) 2022 |
+
+Semakan automatik masa episod (dialog, gerak bibir, kad, kamera, 120 s) dibuat dengan skrip semakan;
+jadual bahagian ada di bahagian atas `js/babak/realiti-e1-pejabat-buruh.js` (`BAHAGIAN`).

@@ -2,39 +2,55 @@
  * ============================================================
  *  REALITI KEHIDUPAN MALAYSIA — EPISOD 1: "APA ITU PEJABAT BURUH?"
  * ============================================================
- *  Durasi: tepat 120 saat. Pencerita: Amir.
+ *  Durasi: tepat 120 saat (termasuk penutup & sumber). Pencerita: Amir.
  *  Dimainkan melalui pejabat-buruh.html (enjin & main.js asal tidak diubah).
  *
- *  Struktur (saat):
- *    0.0 –   7.5  Pembukaan: syot dron + tajuk siri
- *    7.5 –  18.5  Pengenalan (Amir menyapa penonton)
- *   18.5 –  30.5  1. Apa itu JTK?                (Amir berjalan, syot menjejak)
- *   30.5 –  42.8  2. Fungsi Pejabat Buruh
- *   42.8 –  56.3  3. Siapa boleh dapat bantuan?
- *   56.3 –  73.2  4. Contoh situasi: gaji tidak dibayar
- *   73.2 –  88.4  5. Cara membuat aduan          (Amir berjalan ke stesen kedua)
- *   88.4 –  97.8  6. Dokumen yang perlu disediakan
- *   97.8 – 104.3  7. Saluran rasmi JTK
- *  104.3 – 110.5  Penutup + rumusan
- *  110.5 – 120.0  Sumber maklumat (latar gelap)
+ *  Semua masa dalam fail ini dikira RELATIF kepada permulaan bahagian
+ *  dalam jadual BAHAGIAN di bawah. Untuk melaraskan tempo, ubah jadual itu sahaja.
  *
- *  SUMBER FAKTA (rujukan rasmi; semak semula sebelum diterbitkan):
- *   - Laman rasmi JTKSM: https://jtksm.mohr.gov.my (Perkhidmatan > Aduan;
- *     Tuntutan Melalui Kes Buruh; Soalan Lazim Akta Kerja 1955 (Pindaan) 2022)
- *   - Akta Kerja 1955 (Akta 265): Seksyen 19 (tempoh bayaran gaji),
- *     Seksyen 69 (tuntutan di Mahkamah Buruh)
- *   - Perintah Kerja (Pindaan Jadual Pertama) 2022 — berkuat kuasa 1 Januari 2023
- *   - JTK Sabah (jtksabah.gov.my) & JTK Sarawak (jtkswk.gov.my) — Ordinan Buruh
- *     Sabah (Cap. 67) & Ordinan Buruh Sarawak (Cap. 76)
- *  Maklumat disemak: November 2026.
+ *  SUMBER FAKTA (disemak November 2026 — semak semula sebelum diterbitkan):
+ *   - JTKSM, Soalan Lazim Akta Kerja 1955 (Pindaan) 2022 — berkuat kuasa 1 Jan 2023;
+ *     terpakai di Semenanjung Malaysia & Wilayah Persekutuan Labuan; pekerja bergaji
+ *     > RM4,000 (selain pekerja manual) tidak berhak kepada bayaran kerja lebih masa,
+ *     kerja hari rehat, kerja hari kelepasan am & faedah penamatan — peruntukan lain kekal.
+ *     https://jtksm.mohr.gov.my/sites/default/files/2023-02/FAQ%20Public%20Akta%20265(Pindaan)2022.pdf
+ *   - Akta Kerja 1955 (Akta 265): Sek. 19(1) — gaji dibayar tidak lewat hari ke-7
+ *     selepas tamat tempoh gaji; Sek. 69 — tuntutan kewangan di Mahkamah Buruh.
+ *     https://jtksm.mohr.gov.my/sites/default/files/2023-11/Akta%20Kerja%201955%20(Akta%20265).pdf
+ *   - JTKSM, Perkhidmatan > Aduan: pejabat JTK terdekat, surat, e-mel rasmi, SISPAA,
+ *     aplikasi Working for Workers. https://jtksm.mohr.gov.my/en/services/complaints
+ *   - JTKSM, Hubungi Kami > Ibu Pejabat & Cawangan: Tel 03-8000 8000; Pegawai Khidmat
+ *     Pelanggan 03-8886 5192 / 5937; e-mel jtksm@mohr.gov.my.
+ *     https://jtksm.mohr.gov.my/en/contact-us/headquarters-and-branches
+ *   - SISPAA Kementerian Sumber Manusia: https://mohr.spab.gov.my
+ *   - Akta Ordinan Buruh Sabah (Pindaan) 2025 & Akta Ordinan Buruh Sarawak (Pindaan) 2025
+ *     berkuat kuasa 1 Mei 2025 (KESUMA / JTK Sarawak / RTM).
+ *     JTK Sabah: https://www.jtksabah.gov.my · JTK Sarawak: https://www.jtkswk.gov.my
  * ============================================================
  */
-import { lerp, lerpV, masukKeluar, lancar, keluar } from '../teras/util.js';
+import { lerp, lerpV, masukKeluar, lancar } from '../teras/util.js';
+
+// ---------- Jadual bahagian (saat mula) — jumlah tepat 120 s ----------
+const BAHAGIAN = {
+  judul: 0,       // tajuk episod (syot dron)
+  intro: 6.6,     // Amir menyapa penonton
+  jtk: 12.0,      // 1. Apa itu JTK? (Amir berjalan)
+  fungsi: 23.0,   // 2. Fungsi Pejabat Buruh
+  siapa: 35.4,    // 3. Siapa dilindungi + penjelasan RM4,000 + bidang kuasa
+  situasi: 57.4,  // 4. Contoh: gaji tidak dibayar
+  aduan: 73.3,    // 5. Cara membuat aduan (Amir berjalan ke stesen kedua)
+  dokumen: 88.5,  // 6. Dokumen
+  saluran: 96.2,  // 7. Saluran rasmi
+  penutup: 103.0, // rumusan oleh Amir
+  sumber: 109.2,  // sumber maklumat rasmi (latar gelap)
+  tamat: 120.0,
+};
+const B = BAHAGIAN;
 
 // ---------- Tempoh dialog ----------
 // Enjin menggerakkan bibir selama (bilangan huruf × 0.068 s).
 // Tempoh setiap baris = huruf × 0.075 s + 0.75 s — cukup untuk suara TTS
-// selesai pada kelajuan biasa, dengan jeda pendek sebelum baris seterusnya.
+// selesai pada kelajuan biasa, dengan jeda 0.35 s sebelum baris seterusnya.
 const SAAT_SEHURUF = 0.075;
 const PENAMPAN = 0.75;
 const JEDA = 0.35;
@@ -58,204 +74,209 @@ export default {
   id: 'realiti-e1',
   siri: 'Realiti Kehidupan Malaysia',
   tajuk: 'Episod 1 — Apa Itu Pejabat Buruh?',
-  durasi: 120,
+  durasi: B.tamat,
+  bahagian: BAHAGIAN,
 
-  // ---------- Kad teks: tajuk, fakta, rumusan ----------
+  // ---------- Kad teks: tajuk, fakta, rumusan, sumber ----------
   // `utama` mesti unik bagi setiap kad (enjin mengemas kini teks apabila tajuk berubah).
   kadKredit: [
-    { mula: 1.0, tamat: 7.6, utama: 'APA ITU PEJABAT BURUH?', kecil: 'Realiti Kehidupan Malaysia · Episod 1' },
+    { mula: B.judul + 1.0, tamat: B.intro - 0.1, utama: 'APA ITU PEJABAT BURUH?', kecil: 'Realiti Kehidupan Malaysia · Episod 1' },
     {
-      mula: 18.6, tamat: 30.5, utama: '1 · Apa itu JTK?',
-      kecil: 'Jabatan Tenaga Kerja (JTK)\n• Dikenali sebagai "Pejabat Buruh"\n• Di bawah Kementerian Sumber Manusia\n• Sabah & Sarawak: JTK negeri masing-masing',
+      mula: B.jtk + 0.2, tamat: B.fungsi, utama: '1 · Apa itu JTK?',
+      kecil: 'Jabatan Tenaga Kerja (JTK), di bawah Kementerian Sumber Manusia\n• Semenanjung: JTKSM\n• Sabah: JTK Sabah\n• Sarawak: JTK Sarawak',
     },
     {
-      mula: 30.6, tamat: 42.8, utama: '2 · Fungsi Pejabat Buruh',
+      mula: B.fungsi + 0.1, tamat: B.siapa, utama: '2 · Fungsi Pejabat Buruh',
       kecil: '• Menguatkuasakan undang-undang buruh\n• Menerima & menyiasat aduan pekerja\n• Menyelesaikan pertikaian\n• Tuntutan gaji: Mahkamah Buruh (Seksyen 69)',
     },
     {
-      mula: 43.1, tamat: 56.3, utama: '3 · Siapa boleh dapat bantuan?',
-      kecil: '• Pekerja sektor swasta — tempatan & asing\n• Akta Kerja 1955 meliputi semua pekerja sejak 1 Januari 2023\n• Sesetengah faedah: gaji RM4,000 ke bawah',
+      mula: B.siapa + 0.1, tamat: B.siapa + 9.8, utama: '3 · Siapa dilindungi?',
+      kecil: '• Pekerja swasta, tempatan & asing\n• Semenanjung & Labuan: Akta Kerja 1955\n• Sabah & Sarawak: Ordinan Buruh negeri',
     },
     {
-      mula: 56.5, tamat: 73.2, utama: '4 · Contoh situasi',
+      mula: B.siapa + 9.9, tamat: B.situasi, utama: '3 · Bergaji lebih RM4,000?',
+      kecil: '✔ Tetap dilindungi (sejak 1 Jan 2023)\n✘ Tidak automatik: lebih masa, hari rehat, cuti umum, faedah penamatan\n➜ Pekerja manual tetap layak',
+    },
+    {
+      mula: B.situasi + 0.1, tamat: B.aduan, utama: '4 · Contoh situasi',
       kecil: 'Pak Long bekerja di kilang perabot.\nSudah 2 bulan gajinya tidak dibayar.\n\n⚖️ Seksyen 19, Akta Kerja 1955:\nGaji mesti dibayar tidak lewat hari ke-7 selepas tamat tempoh gaji.',
     },
     {
-      mula: 73.4, tamat: 88.4, utama: '5 · Cara membuat aduan',
+      mula: B.aduan + 0.1, tamat: B.dokumen, utama: '5 · Cara membuat aduan',
       kecil: '① Datang ke pejabat JTK terdekat\n② Atau melalui surat / e-mel\n③ Atau dalam talian: SISPAA / aplikasi Working for Workers\n④ JTK menyiasat aduan\n⑤ Tidak selesai → tuntutan di Mahkamah Buruh',
     },
     {
-      mula: 88.5, tamat: 97.8, utama: '6 · Dokumen diperlukan',
-      kecil: '• MyKad / pasport\n• Surat tawaran / kontrak kerja\n• Slip gaji & penyata bank\n• Rekod kehadiran & bukti mesej',
+      mula: B.dokumen + 0.1, tamat: B.saluran, utama: '6 · Dokumen diperlukan',
+      kecil: '• MyKad / pasport\n• Kontrak kerja\n• Slip gaji, penyata bank\n• Rekod kehadiran, mesej',
     },
     {
-      mula: 98.0, tamat: 104.3, utama: '7 · Saluran rasmi JTK',
-      kecil: '🌐 jtksm.mohr.gov.my\n✉️ jtksm@mohr.gov.my\n☎️ 03-8886 5192',
+      mula: B.saluran + 0.1, tamat: B.penutup, utama: '7 · Saluran rasmi JTKSM',
+      kecil: '🌐 jtksm.mohr.gov.my\n✉️ jtksm@mohr.gov.my\n☎️ 03-8000 8000',
     },
     {
-      mula: 104.4, tamat: 110.4, utama: 'RUMUSAN',
+      mula: B.penutup + 0.1, tamat: B.sumber, utama: 'RUMUSAN',
       kecil: '✔ Pejabat Buruh = JTK\n✔ Gaji: tidak lewat 7 hari\n✔ Simpan bukti & buat aduan',
     },
     {
-      mula: 110.6, tamat: 120.0, utama: 'SUMBER MAKLUMAT',
-      kecil: 'JTKSM — jtksm.mohr.gov.my\nAkta Kerja 1955 (Akta 265)\nJTK Sabah · JTK Sarawak\nDisemak: Nov 2026 · Sahkan dengan JTK',
+      mula: B.sumber + 0.3, tamat: B.tamat, utama: 'SUMBER MAKLUMAT RASMI',
+      kecil: 'JTKSM — jtksm.mohr.gov.my\nAkta Kerja 1955 (Akta 265)\nJTK Sabah — jtksabah.gov.my\nJTK Sarawak — jtkswk.gov.my\nSemakan: Nov 2026',
     },
   ],
 
-  fade: [[0, 1], [1.2, 0], [109.6, 0], [111.0, 0.93], [120, 0.93]],
+  fade: [[0, 1], [1.2, 0], [B.sumber - 0.6, 0], [B.sumber + 0.6, 0.93], [B.tamat, 0.93]],
 
   // ---------- Pergerakan Amir ----------
   laluan: [
     { t: 0, p: STESEN_1, yaw: 0 },
-    { t: 18.5, p: STESEN_1, yaw: 0 },
-    { t: 24.5, p: STESEN_2, yaw: 0.05, gerak: 'linear' },     // berjalan 4.6 m dalam 6 s
-    { t: 25.5, p: STESEN_2, yaw: 0 },
-    { t: 57.0, p: STESEN_2, yaw: 0 },
-    { t: 58.5, p: STESEN_2, yaw: 0.35 },                     // berpaling sedikit (bercerita)
-    { t: 71.0, p: STESEN_2, yaw: 0.35 },
-    { t: 72.4, p: STESEN_2, yaw: 0 },
-    { t: 73.3, p: STESEN_2, yaw: -0.29 },                     // menghadap laluan
-    { t: 77.3, p: STESEN_3, yaw: -0.29, gerak: 'linear' },    // berjalan 3.1 m dalam 4 s
-    { t: 78.5, p: STESEN_3, yaw: 0.08 },                      // berpaling ke kamera
-    { t: 121, p: STESEN_3, yaw: 0.08 },
+    { t: B.jtk + 0.1, p: STESEN_1, yaw: 0 },
+    { t: B.jtk + 6.1, p: STESEN_2, yaw: 0.05, gerak: 'linear' },   // berjalan 4.6 m dalam 6 s
+    { t: B.jtk + 7.1, p: STESEN_2, yaw: 0 },
+    { t: B.situasi + 0.6, p: STESEN_2, yaw: 0 },
+    { t: B.situasi + 2.1, p: STESEN_2, yaw: 0.35 },                 // berpaling sedikit (bercerita)
+    { t: B.aduan - 2.0, p: STESEN_2, yaw: 0.35 },
+    { t: B.aduan - 0.8, p: STESEN_2, yaw: 0 },
+    { t: B.aduan + 0.1, p: STESEN_2, yaw: -0.29 },                  // menghadap laluan
+    { t: B.aduan + 4.1, p: STESEN_3, yaw: -0.29, gerak: 'linear' }, // berjalan 3.1 m dalam 4 s
+    { t: B.aduan + 5.3, p: STESEN_3, yaw: 0.08 },                   // berpaling ke kamera
+    { t: B.tamat + 1, p: STESEN_3, yaw: 0.08 },
   ],
 
   // ---------- Animasi badan ----------
   animasi: [
-    { klip: 'Melambai', mula: 8.0, tamat: 12.6, masuk: 0.5, keluar: 0.6 },
-    { klip: 'Bercakap', mula: 12.6, tamat: 18.4, masuk: 0.6, keluar: 0.5, berat: 0.8 },
-    { klip: 'Berjalan', mula: 18.5, tamat: 24.6, masuk: 0.4, keluar: 0.4, kadar: 1.05 },
-    { klip: 'Bercakap', mula: 24.9, tamat: 30.4, masuk: 0.6, keluar: 0.5, berat: 0.7 },
-    { klip: 'Bercakap', mula: 30.8, tamat: 56.0, masuk: 0.6, keluar: 0.6, berat: 0.85 },
-    { klip: 'Bercakap', mula: 61.0, tamat: 72.4, masuk: 0.8, keluar: 0.6, berat: 0.55 },
-    { klip: 'Berjalan', mula: 73.2, tamat: 77.7, masuk: 0.4, keluar: 0.5, kadar: 1.05 },
-    { klip: 'Bercakap', mula: 77.9, tamat: 104.0, masuk: 0.6, keluar: 0.6, berat: 0.8 },
-    { klip: 'Melambai', mula: 104.3, tamat: 110.3, masuk: 0.5, keluar: 0.6 },
+    { klip: 'Melambai', mula: B.intro + 0.2, tamat: B.jtk, masuk: 0.5, keluar: 0.6 },
+    { klip: 'Berjalan', mula: B.jtk + 0.1, tamat: B.jtk + 6.2, masuk: 0.4, keluar: 0.4, kadar: 1.05 },
+    { klip: 'Bercakap', mula: B.jtk + 6.4, tamat: B.fungsi, masuk: 0.6, keluar: 0.5, berat: 0.7 },
+    { klip: 'Bercakap', mula: B.fungsi + 0.2, tamat: B.situasi - 0.3, masuk: 0.6, keluar: 0.6, berat: 0.85 },
+    { klip: 'Bercakap', mula: B.situasi + 4.6, tamat: B.aduan - 0.8, masuk: 0.8, keluar: 0.6, berat: 0.55 },
+    { klip: 'Berjalan', mula: B.aduan, tamat: B.aduan + 4.5, masuk: 0.4, keluar: 0.5, kadar: 1.05 },
+    { klip: 'Bercakap', mula: B.aduan + 4.7, tamat: B.penutup - 0.3, masuk: 0.6, keluar: 0.6, berat: 0.8 },
+    { klip: 'Melambai', mula: B.penutup + 0.1, tamat: B.sumber + 0.6, masuk: 0.5, keluar: 0.6 },
   ],
 
   // ---------- Ekspresi wajah ----------
   ekspresi: [
-    [0, 'gembira'], [8.0, 'sangat_gembira'], [12.8, 'gembira'],
-    [18.6, 'gembira'], [30.8, 'bersemangat'], [43.1, 'gembira'],
-    [56.6, 'risau'], [61.4, 'sedih'], [66.0, 'bersemangat'],
-    [77.8, 'gembira'], [88.4, 'bersemangat'], [97.8, 'gembira'], [104.3, 'sangat_gembira'],
+    [0, 'gembira'], [B.intro + 0.2, 'sangat_gembira'], [B.jtk, 'gembira'],
+    [B.fungsi, 'bersemangat'], [B.siapa, 'gembira'],
+    [B.situasi + 0.2, 'risau'], [B.situasi + 4.9, 'sedih'], [B.situasi + 9.4, 'bersemangat'],
+    [B.aduan + 4.5, 'gembira'], [B.dokumen, 'bersemangat'], [B.saluran, 'gembira'], [B.penutup, 'sangat_gembira'],
   ],
 
   // ---------- Arah pandangan ----------
   pandangan: [
     { t: 0, sasaran: null },
-    { t: 8.0, sasaran: 'kamera' },
-    { t: 18.4, sasaran: null },
-    { t: 24.8, sasaran: 'kamera' },
-    { t: 61.4, sasaran: [2.6, 0.9, 4.2] },   // memandang ke sisi semasa bercerita tentang Pak Long
-    { t: 66.0, sasaran: 'kamera' },
-    { t: 73.1, sasaran: null },
-    { t: 77.8, sasaran: 'kamera' },
+    { t: B.intro + 0.2, sasaran: 'kamera' },
+    { t: B.jtk, sasaran: null },
+    { t: B.jtk + 6.4, sasaran: 'kamera' },
+    { t: B.situasi + 4.9, sasaran: [2.6, 0.9, 4.2] },  // memandang ke sisi semasa bercerita tentang Pak Long
+    { t: B.situasi + 9.4, sasaran: 'kamera' },
+    { t: B.aduan - 0.2, sasaran: null },
+    { t: B.aduan + 4.5, sasaran: 'kamera' },
   ],
 
   // ---------- Dialog (Bahasa Melayu mudah) ----------
+  // Nombor ditulis dengan perkataan supaya suara TTS & gerak bibir sepadan.
   dialog: [
-    ...babakDialog(8.0, [
+    ...babakDialog(B.intro + 0.4, [
       'Assalamualaikum dan salam sejahtera, kawan-kawan!',
-      'Hari ini kita belajar tentang Pejabat Buruh.',
     ]),
-    ...babakDialog(19.0, [
-      'Pejabat Buruh ialah nama biasa bagi Jabatan Tenaga Kerja, atau JTK.',
-      'JTK berada di bawah Kementerian Sumber Manusia.',
+    ...babakDialog(B.jtk + 0.5, [
+      'Pejabat Buruh ialah Jabatan Tenaga Kerja, atau JTK.',
+      'Sabah dan Sarawak mempunyai JTK negeri sendiri.',
     ]),
-    ...babakDialog(31.0, [
+    ...babakDialog(B.fungsi + 0.4, [
       'JTK memastikan majikan mematuhi undang-undang buruh.',
       'JTK menerima aduan, menyiasat, dan membantu menyelesaikan pertikaian.',
     ]),
-    ...babakDialog(43.3, [
+    ...babakDialog(B.siapa + 0.4, [
       'Siapa boleh mendapat bantuan? Pekerja sektor swasta, termasuk pekerja asing.',
-      'Sejak tahun 2023, Akta Kerja 1955 meliputi pekerja tanpa mengira gaji.',
+      'Di Semenanjung dan Labuan, Akta Kerja meliputi semua pekerja.',
+      'Gaji lebih empat ribu ringgit pun tetap dilindungi undang-undang.',
     ]),
-    ...babakDialog(56.6, [
-      'Contohnya, Pak Long saya bekerja di sebuah kilang perabot.',
+    ...babakDialog(B.situasi + 0.3, [
+      'Contohnya, Pak Long saya bekerja di kilang perabot.',
       'Sudah dua bulan, majikannya tidak membayar gaji.',
       'Gaji mesti dibayar tidak lewat tujuh hari selepas tempoh gaji tamat.',
     ]),
-    ...babakDialog(73.6, [
+    ...babakDialog(B.aduan + 0.3, [
       'Pak Long boleh mengadu di pejabat JTK terdekat.',
       'Atau melalui e-mel dan sistem dalam talian.',
       'JTK akan menyiasat. Jika tidak selesai, kes dibawa ke Mahkamah Buruh.',
     ]),
-    ...babakDialog(88.7, [
+    ...babakDialog(B.dokumen + 0.2, [
       'Sediakan kad pengenalan, kontrak dan slip gaji.',
     ]),
-    ...babakDialog(98.1, [
+    ...babakDialog(B.saluran + 0.2, [
       'Maklumat rasmi ada di laman web dan pejabat JTK.',
     ]),
-    ...babakDialog(104.6, [
+    ...babakDialog(B.penutup + 0.2, [
       'Ingat, setiap pekerja berhak dibayar gaji. Jumpa lagi!',
     ]),
   ],
 
   // ---------- Bunyi ----------
   peristiwa: [
-    { t: 0.9, sfx: 'ajaib' },
-    { t: 110.6, sfx: 'ajaib' },
+    { t: B.judul + 0.9, sfx: 'ajaib' },
+    { t: B.sumber + 0.3, sfx: 'ajaib' },
   ],
-  muzikVolum: [[0, 1], [7.5, 0.7], [109, 0.7], [113, 0.45], [120, 0.1]],
+  muzikVolum: [[0, 1], [B.intro, 0.7], [B.sumber - 0.6, 0.7], [B.sumber + 3, 0.45], [B.tamat, 0.1]],
 
   // ---------- Kamera sinematik (pergerakan perlahan) ----------
   kamera: [
     {
-      nama: 'Pembukaan — dron perlahan ke kampung', mula: 0, tamat: 7.5,
+      nama: 'Pembukaan — dron perlahan ke kampung', mula: B.judul, tamat: B.intro,
       kira: (u) => {
         const e = masukKeluar(u);
         return { pos: lerpV([13, 8.5, 15], [7, 3.6, 7.5], e), sasaran: lerpV([0, 2.4, -8], [0, 1.4, -4.5], e), fov: lerp(50, 46, e) };
       },
     },
     {
-      nama: 'Pengenalan — syot sederhana di depan rumah', mula: 7.5, tamat: 18.5, goncang: 0.5,
-      kira: (u) => ({ pos: lerpV([1.8, 1.3, -0.4], [1.25, 1.22, -1.1], lancar(u)), sasaran: [0, 1.05, -3.0], fov: 42 }),
+      nama: 'Pengenalan — syot sederhana di depan rumah', mula: B.intro, tamat: B.jtk, goncang: 0.5,
+      kira: (u) => ({ pos: lerpV([1.8, 1.3, -0.4], [1.4, 1.25, -0.9], lancar(u)), sasaran: [0, 1.05, -3.0], fov: 42 }),
     },
     {
-      nama: '1 — Syot menjejak (Amir berjalan)', mula: 18.5, tamat: 25.0, goncang: 0.8,
+      nama: '1 — Syot menjejak (Amir berjalan)', mula: B.jtk, tamat: B.jtk + 6.5, goncang: 0.8,
       kira: (u, k) => {
         const o = lerpV([1.4, 0.8, 3.4], [0.8, 1.0, 2.8], masukKeluar(u));
         return { pos: [k.amir[0] + o[0], o[1], k.amir[2] + o[2]], sasaran: [k.amir[0], 0.9, k.amir[2]], fov: 44 };
       },
     },
     {
-      nama: '1 — Syot sederhana (JTK)', mula: 25.0, tamat: 30.5, goncang: 0.4,
+      nama: '1 — Syot sederhana (JTK)', mula: B.jtk + 6.5, tamat: B.fungsi, goncang: 0.4,
       kira: (u, k) => ({ pos: lerpV([k.amir[0] + 0.8, 1.05, k.amir[2] + 2.8], [k.amir[0] + 0.55, 1.1, k.amir[2] + 2.45], lancar(u)), sasaran: [0.3, 1.0, 1.6], fov: 44 }),
     },
     {
-      nama: '2 — Sudut rendah 3/4 (fungsi)', mula: 30.5, tamat: 42.8, goncang: 0.4,
+      nama: '2 — Sudut rendah 3/4 (fungsi)', mula: B.fungsi, tamat: B.siapa, goncang: 0.4,
       kira: (u) => ({ pos: lerpV([-1.0, 0.85, 3.3], [-0.75, 0.92, 2.95], lancar(u)), sasaran: [0.3, 1.08, 1.6], fov: 42 }),
     },
     {
-      nama: '3 — Syot dekat hadapan (siapa)', mula: 42.8, tamat: 56.3, goncang: 0.4,
-      kira: (u) => ({ pos: lerpV([0.75, 1.2, 3.55], [0.6, 1.18, 3.15], lancar(u)), sasaran: [0.3, 1.06, 1.6], fov: 44 }),
+      nama: '3 — Syot dekat hadapan (siapa)', mula: B.siapa, tamat: B.situasi, goncang: 0.4,
+      kira: (u) => ({ pos: lerpV([0.75, 1.2, 3.55], [0.55, 1.17, 3.05], lancar(u)), sasaran: [0.3, 1.06, 1.6], fov: 44 }),
     },
     {
-      nama: '4 — Tolak masuk perlahan (situasi)', mula: 56.3, tamat: 73.2, goncang: 0.6,
+      nama: '4 — Tolak masuk perlahan (situasi)', mula: B.situasi, tamat: B.aduan, goncang: 0.6,
       kira: (u) => {
         const e = masukKeluar(u);
         return { pos: lerpV([1.35, 1.15, 3.8], [0.95, 1.18, 3.0], e), sasaran: lerpV([0.3, 1.0, 1.6], [0.3, 1.1, 1.6], e), fov: lerp(44, 38, e) };
       },
     },
     {
-      nama: '5 — Syot lebar (berjalan ke stesen 2)', mula: 73.2, tamat: 79.5, goncang: 0.6,
+      nama: '5 — Syot lebar (berjalan ke stesen 2)', mula: B.aduan, tamat: B.aduan + 6.3, goncang: 0.6,
       kira: (u, k) => ({ pos: lerpV([2.6, 1.4, 6.6], [2.0, 1.35, 7.0], lancar(u)), sasaran: [k.amir[0], 0.95, k.amir[2]], fov: 44 }),
     },
     {
-      nama: '5 — Syot sederhana (cara aduan)', mula: 79.5, tamat: 88.4, goncang: 0.4,
+      nama: '5 — Syot sederhana (cara aduan)', mula: B.aduan + 6.3, tamat: B.dokumen, goncang: 0.4,
       kira: (u) => ({ pos: lerpV([0.3, 1.15, 7.6], [0.1, 1.15, 7.25], lancar(u)), sasaran: [-0.6, 1.0, 4.6], fov: 44 }),
     },
     {
-      nama: '6 — Sudut 3/4 (dokumen)', mula: 88.4, tamat: 97.8, goncang: 0.4,
+      nama: '6 — Sudut 3/4 (dokumen)', mula: B.dokumen, tamat: B.saluran, goncang: 0.4,
       kira: (u) => ({ pos: lerpV([-2.1, 1.0, 6.8], [-1.85, 1.05, 6.5], lancar(u)), sasaran: [-0.6, 1.05, 4.6], fov: 42 }),
     },
     {
-      nama: '7 — Syot sederhana (saluran rasmi)', mula: 97.8, tamat: 104.0, goncang: 0.4,
+      nama: '7 — Syot sederhana (saluran rasmi)', mula: B.saluran, tamat: B.penutup, goncang: 0.4,
       kira: (u) => ({ pos: lerpV([0.4, 1.2, 7.7], [0.2, 1.18, 7.35], lancar(u)), sasaran: [-0.6, 1.02, 4.6], fov: 44 }),
     },
     {
-      nama: 'Penutup — kamera naik perlahan', mula: 104.0, tamat: 120.1, goncang: 0.3,
+      nama: 'Penutup & sumber — kamera naik perlahan', mula: B.penutup, tamat: B.tamat + 0.1, goncang: 0.3,
       kira: (u) => {
         const e = masukKeluar(Math.min(1, u * 1.4));
         return { pos: lerpV([0.2, 1.2, 7.4], [1.6, 3.2, 10.5], e), sasaran: lerpV([-0.6, 1.05, 4.6], [-0.6, 1.2, 3.0], e), fov: 46 };
