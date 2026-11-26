@@ -225,3 +225,62 @@ Panduan masa (lihat komen dalam fail babak):
 
 Semakan automatik masa episod (dialog, gerak bibir, kad, kamera, 120 s) dibuat dengan skrip semakan;
 jadual bahagian ada di bahagian atas `js/babak/realiti-e1-pejabat-buruh.js` (`BAHAGIAN`).
+
+---
+
+## ☕ Siri: TAHU TAK? – BORAK KEDAI KOPI (Fasa 1: asas teknikal)
+
+Tiga watak tetap berbual di **Warung Pak Din**:
+| Watak | Peranan | Model | Skala |
+|---|---|---|---|
+| Amir | Remaja, suka bertanya | `assets/model/watak/amir.glb` | 1.10 |
+| Fikri | Remaja, suka berkongsi pengetahuan (berkemeja, bercermin mata) | `assets/model/watak/fikri.glb` | 1.14 |
+| Pak Din | Pemilik warung, kelakar & berpengalaman (kopiah, misai, apron, kain pelikat) | `assets/model/watak/pakdin.glb` | 1.30 |
+
+Babak ujian: **`kopi-ujian.html`** (± 33 s, bukan episod).
+
+### Fail baharu
+| Fail | Fungsi |
+|---|---|
+| `js/sinematik/PengarahSiri.js` | Pengarah berbilang watak (mewarisi `Pengarah.js` yang tidak diubah) |
+| `js/dunia/Warung.js` | Set Warung Pak Din + `kosongkanKawasan()` (buang rumput/semak di kawasan set) |
+| `js/babak/siri-kopi/watak.js` | Tetapan tetap watak (model, skala, suara) & susun atur warung (`TEMPAT`) |
+| `js/babak/siri-kopi/kamera.js` | Syot siap: `pembukaan`, `tigaWatak`, `duaWatak`, `dekat`, `atasBahu` |
+| `js/babak/siri-kopi/bantu.js` | `dialogBerturut()` berbilang penutur & `semakBabak()` |
+| `js/babak/siri-kopi/_templat.js` | Templat episod 2 minit |
+| `js/babak/siri-kopi/ujian.js` | Babak ujian teknikal |
+| `tools/watak-profil.mjs` | Profil rupa Amir / Fikri / Pak Din untuk penjana |
+| `css/siri-kopi.css` | Warna nama penutur dalam sari kata |
+
+### Fail sedia ada yang diubah
+- **`js/main.js`** — cabang `if (babak.watak)`: muat semua model watak, `babak.set()` & `PengarahSiri`
+  (dimuat secara dinamik). Blok `else` = kod asal. Satu baris: sambung dialog guna suara watak.
+- **`tools/bina-karakter.mjs`** — pilihan `--watak <id>` + klip siri. Tanpa pilihan, `assets/model/amir.glb`
+  dijana **sama bait demi bait** seperti sebelum ini (disahkan dengan `cmp`).
+
+### Format babak berbilang watak
+```js
+watak: { amir: watakEpisod('amir', { asas: 'Duduk', laluan, animasi, ekspresi, pandangan }), fikri: ..., pakdin: ... },
+set: (konteks) => binaWarung(konteks, tetapanWarung()),
+prop: [{ nama: 'cawanAmir', watak: 'amir', tulang: 'TanganKanan', mula, tamat, pos, rot }],
+dialog: dialogBerturut(mula, [['amir', 'Teks', { kepada: 'fikri' }], ['fikri', 'Teks']]),
+kamera: [pembukaan(0, 5), atasBahu('amir', 'fikri', 5, 10), tigaWatak(10, 20), ...],
+```
+- **Pandangan automatik:** pendengar memandang penutur; penutur memandang `kepada` (atau penutur sebelumnya).
+  Kunci `pandangan` manual ditambah di atasnya (cth. `{ t, sasaran: null }` untuk pandang ke depan).
+- **Suara:** pic/kadar TTS berbeza setiap watak (`watak.js`).
+- **Klip siri:** `Duduk`, `DudukBercakap`, `DudukKetawa`, `DudukMengangguk`, `DudukMenggeleng`, `DudukMinum`,
+  `Ketawa`, `Mengangguk`, `Menggeleng`, `SilangTangan`, `MengelapMeja`, `MenuangKopi`.
+  Klip duduk mengandungi pose kaki duduk supaya adunan antara klip duduk tidak menarik kaki ke pose berdiri.
+
+### Jana semula model watak
+```bash
+npm install          # sekali sahaja
+npm run bina:siri    # assets/model/watak/{amir,fikri,pakdin}.glb
+```
+
+### Episod baharu
+1. Salin `js/babak/siri-kopi/_templat.js` → `e1-<topik>.js`.
+2. Salin `kopi-ujian.html` → `kopi-e1-<topik>.html`, tukar baris import map ke fail babak baharu.
+3. Semak masa dengan `semakBabak()` dalam konsol pelayar:
+   `(await import('./js/babak/siri-kopi/bantu.js')).semakBabak(__animasi.babak)` → `[]` bermaksud lulus.

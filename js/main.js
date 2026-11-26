@@ -94,21 +94,37 @@ async function muat() {
   kemajuan(0.05, 'Membina kampung 3D...');
   await new Promise((r) => setTimeout(r, 30));
   const dunia = binaPersekitaran(scene, renderer, kualiti);
-  kemajuan(0.35, 'Memuatkan karakter Amir (GLB)...');
-  const karakter = await Karakter.muat('assets/model/amir.glb', (e) => {
-    if (e.total) kemajuan(0.35 + 0.5 * (e.loaded / e.total));
-  });
-  scene.add(karakter.objek);
+  const ui = {
+    fade: $('fade'), kredit: $('kredit'), kreditUtama: $('kredit-utama'), kreditKecil: $('kredit-kecil'),
+    sariKata: $('sarikata'), sariKataNama: $('sarikata-nama'), sariKataTeks: $('sarikata-teks'),
+  };
   const cahaya = new CahayaAjaib();
   scene.add(cahaya.objek);
 
-  pengarah = new Pengarah({
-    babak, karakter, cahaya, kamera, dunia, muzik: null, suara,
-    ui: {
-      fade: $('fade'), kredit: $('kredit'), kreditUtama: $('kredit-utama'), kreditKecil: $('kredit-kecil'),
-      sariKata: $('sarikata'), sariKataNama: $('sarikata-nama'), sariKataTeks: $('sarikata-teks'),
-    },
-  });
+  if (babak.watak) {
+    // ---- Babak BERBILANG WATAK (cth. siri Borak Kedai Kopi) ----
+    // Dimuat secara dinamik: episod lama tidak memuat kod ini langsung.
+    const { PengarahSiri } = await import('./sinematik/PengarahSiri.js');
+    const ids = Object.keys(babak.watak);
+    kemajuan(0.35, `Memuatkan watak: ${ids.map((id) => babak.watak[id].nama || id).join(', ')}...`);
+    const watak = {};
+    let siap = 0;
+    await Promise.all(ids.map(async (id) => {
+      watak[id] = await Karakter.muat(babak.watak[id].model);
+      scene.add(watak[id].objek);
+      kemajuan(0.35 + 0.5 * (++siap / ids.length));
+    }));
+    const set = babak.set ? await babak.set({ scene, dunia, watak, kualiti }) : null;
+    pengarah = new PengarahSiri({ babak, watak, set, cahaya, kamera, dunia, muzik: null, suara, ui });
+  } else {
+    // ---- Babak SATU WATAK (episod asal) — tidak berubah ----
+    kemajuan(0.35, 'Memuatkan karakter Amir (GLB)...');
+    const karakter = await Karakter.muat('assets/model/amir.glb', (e) => {
+      if (e.total) kemajuan(0.35 + 0.5 * (e.loaded / e.total));
+    });
+    scene.add(karakter.objek);
+    pengarah = new Pengarah({ babak, karakter, cahaya, kamera, dunia, muzik: null, suara, ui });
+  }
 
   // Seek awal melalui URL, cth: ?t=20 (berguna semasa membangunkan babak)
   if (param.has('t')) keadaan.t = Math.min(babak.durasi, parseFloat(param.get('t')) || 0);
@@ -152,7 +168,7 @@ async function mainkan() {
   pengarah.lompat(keadaan.t); // elak dialog lama dicetus semula
   // Jika sambung di tengah dialog, ulang baris itu
   const d = babak.dialog.find((x) => keadaan.t > x.mula && keadaan.t < x.tamat - 0.6);
-  if (d) suara.cakap(d.teks);
+  if (d) pengarah.cakapDialog ? pengarah.cakapDialog(d) : suara.cakap(d.teks); // suara ikut watak (babak berbilang watak)
   kemaskiniButang();
   denyutIkon(IKON.main);
   jadualSembunyi();

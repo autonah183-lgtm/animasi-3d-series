@@ -23,6 +23,14 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PROFIL } from './watak-profil.mjs';
+
+// --- Profil watak (pilihan): node tools/bina-karakter.mjs --watak fikri ---
+// Tanpa --watak: menghasilkan assets/model/amir.glb asal (sama bait demi bait).
+const _iArg = process.argv.indexOf('--watak');
+const ID_WATAK = _iArg > 0 ? process.argv[_iArg + 1] : null;
+if (ID_WATAK && !PROFIL[ID_WATAK]) { console.error(`Profil '${ID_WATAK}' tiada. Pilihan: ${Object.keys(PROFIL).join(', ')}`); process.exit(1); }
+const P = ID_WATAK ? PROFIL[ID_WATAK] : {};
 
 // --- Polyfill FileReader (GLTFExporter memerlukannya, Node tiada) ---
 globalThis.FileReader = class {
@@ -63,6 +71,8 @@ const WARNA = {
   lidah: 0xa0383a,
   kening: 0x2a1b12,
 };
+Object.assign(WARNA, P.warna || {});
+if (WARNA.seluar === undefined) WARNA.seluar = WARNA.baju;
 
 // ============================================================
 // 2. RANGKA TULANG (posisi relatif kepada induk, pose rehat)
@@ -233,25 +243,52 @@ const Y = (n) => posDunia(n).y;
 
 // --- Badan (baju melayu) menggunakan LatheGeometry untuk bentuk lembut ---
 {
-  const profil = [
+  const profil = (P.perut ? [
+    // Pak Din: perut buncit & badan lebih tegap
+    [0.0, 0.45], [0.11, 0.455], [0.135, 0.50], [0.155, 0.57], [0.165, 0.64], [0.158, 0.71],
+    [0.14, 0.78], [0.135, 0.83], [0.122, 0.87], [0.088, 0.905], [0.045, 0.925], [0.0, 0.93],
+  ] : [
     [0.0, 0.47], [0.105, 0.475], [0.125, 0.52], [0.128, 0.60], [0.122, 0.70],
     [0.126, 0.80], [0.118, 0.865], [0.085, 0.905], [0.045, 0.925], [0.0, 0.93],
-  ].map(([r, y]) => new THREE.Vector2(r, y));
-  const g = tx(new THREE.LatheGeometry(profil, 32), { s: [1, 1, 0.82] });
-  bahagianBadan.push(bahagian(g, WARNA.baju, beratRantai([['Pinggul', 0.60], ['TulangBelakang', 0.70], ['Dada', 0.80]])));
+  ]).map(([r, y]) => new THREE.Vector2(r, y));
+  const g = tx(new THREE.LatheGeometry(profil, P.perut ? 64 : 32), { s: [1, 1, P.perut ? 0.88 : 0.82] });
+  // Apron (Pak Din): bahagian hadapan badan diwarnakan
+  const warnaBadan = P.apron
+    ? (v) => (v.z > 0.02 && Math.abs(v.x) < 0.1 && v.y < 0.86 && v.y > 0.455 ? WARNA.apron : WARNA.baju)
+    : WARNA.baju;
+  bahagianBadan.push(bahagian(g, warnaBadan, beratRantai([['Pinggul', 0.60], ['TulangBelakang', 0.70], ['Dada', 0.80]])));
 
-  // Kolar "cekak musang"
-  bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.047, 0.05, 0.035, 20), { p: [0, 0.925, 0] }), WARNA.bajuGelap, 'Dada'));
-  // Butang emas di dada
-  for (const y of [0.875, 0.835, 0.795]) {
-    bahagianBadan.push(bahagian(tx(new THREE.SphereGeometry(0.008, 8, 6), { p: [0, y, 0.82 * 0.124 + 0.003] }), WARNA.butang, 'Dada'));
+  const zDepan = (P.perut ? 0.88 * 0.135 : 0.82 * 0.124) + 0.003;
+  if (P.baju === 'kemeja') {
+    // Kolar kemeja (dua kepak) + butang + poket
+    bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.05, 0.056, 0.03, 20), { p: [0, 0.922, 0] }), WARNA.bajuGelap, 'Dada'));
+    for (const s of [1, -1]) {
+      bahagianBadan.push(bahagian(tx(new THREE.BoxGeometry(0.045, 0.006, 0.04), { r: [-35, 0, s * 28], p: [s * 0.03, 0.905, 0.075] }), WARNA.bajuGelap, 'Dada'));
+    }
+    for (const y of [0.875, 0.835, 0.795, 0.755]) {
+      bahagianBadan.push(bahagian(tx(new THREE.SphereGeometry(0.0065, 8, 6), { p: [0, y, zDepan] }), WARNA.butang, 'Dada'));
+    }
+    bahagianBadan.push(bahagian(tx(new THREE.BoxGeometry(0.05, 0.045, 0.006), { p: [0.06, 0.83, 0.098], r: [-8, 0, 0] }), WARNA.bajuGelap, 'Dada'));
+  } else if (P.baju === 'kaos') {
+    // Baju-T: leher bulat sahaja; tali apron di leher
+    bahagianBadan.push(bahagian(tx(new THREE.TorusGeometry(0.047, 0.008, 6, 24), { r: [90, 0, 0], p: [0, 0.922, 0] }), WARNA.bajuGelap, 'Dada'));
+    if (P.apron) for (const s of [1, -1]) {
+      bahagianBadan.push(bahagian(tx(new THREE.BoxGeometry(0.012, 0.09, 0.008), { r: [-30, 0, s * 25], p: [s * 0.045, 0.885, 0.07] }), WARNA.apron, 'Dada'));
+    }
+  } else {
+    // Kolar "cekak musang"
+    bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.047, 0.05, 0.035, 20), { p: [0, 0.925, 0] }), WARNA.bajuGelap, 'Dada'));
+    // Butang emas di dada
+    for (const y of [0.875, 0.835, 0.795]) {
+      bahagianBadan.push(bahagian(tx(new THREE.SphereGeometry(0.008, 8, 6), { p: [0, y, 0.82 * 0.124 + 0.003] }), WARNA.butang, 'Dada'));
+    }
+    // Poket kecil
+    bahagianBadan.push(bahagian(tx(new THREE.BoxGeometry(0.05, 0.035, 0.006), { p: [0.06, 0.835, 0.098], r: [-8, 0, 0] }), WARNA.bajuGelap, 'Dada'));
   }
-  // Poket kecil
-  bahagianBadan.push(bahagian(tx(new THREE.BoxGeometry(0.05, 0.035, 0.006), { p: [0.06, 0.835, 0.098], r: [-8, 0, 0] }), WARNA.bajuGelap, 'Dada'));
 }
 
 // --- Samping songket (corak emas melalui warna verteks) ---
-{
+if (P.samping !== false) {
   const g = tx(new THREE.CylinderGeometry(0.134, 0.155, 0.17, 48, 10, true), { s: [1, 1, 0.86], p: [0, 0.505, 0] });
   const corak = (v) => {
     const a = Math.atan2(v.x, v.z);
@@ -292,14 +329,49 @@ for (const s of [1, -1]) {
   bahagianBadan.push(bahagian(g, WARNA.pipi, 'Kepala'));
 }
 // Rambut (separuh sfera di belakang/atas)
-bahagianBadan.push(bahagian(
-  tx(new THREE.SphereGeometry(0.236, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.58), { r: [-14, 0, 0], p: [pusatKepala.x, pusatKepala.y + 0.025, pusatKepala.z - 0.03] }),
-  WARNA.rambut, 'Kepala'));
-// Songkok
-{
+if (P.rambut === 'penuh') {
+  // Rambut penuh (Fikri): kubah rambut + jambul di hadapan
+  bahagianBadan.push(bahagian(
+    tx(new THREE.SphereGeometry(0.243, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.5), { r: [-18, 0, 0], p: [pusatKepala.x, pusatKepala.y + 0.03, pusatKepala.z - 0.025] }),
+    WARNA.rambut, 'Kepala'));
+  bahagianBadan.push(bahagian(
+    tx(new THREE.SphereGeometry(0.12, 24, 12), { s: [1.35, 0.42, 0.75], r: [-25, 0, -8], p: [pusatKepala.x - 0.02, pusatKepala.y + 0.17, pusatKepala.z + 0.1] }),
+    WARNA.rambut, 'Kepala'));
+} else {
+  bahagianBadan.push(bahagian(
+    tx(new THREE.SphereGeometry(0.236, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.58), { r: [-14, 0, 0], p: [pusatKepala.x, pusatKepala.y + 0.025, pusatKepala.z - 0.03] }),
+    WARNA.rambut, 'Kepala'));
+}
+if (P.topi === 'kopiah') {
+  // Kopiah putih (Pak Din)
+  const pos = pusatKepala.clone().add(V(0, 0.165, -0.015));
+  bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.19, 0.205, 0.09, 48, 2), { r: [-6, 0, 0], p: pos.toArray() }),
+    (v) => (Math.round((v.y - pos.y) * 60) % 2 === 0 ? WARNA.topi : 0xe4e0d4), 'Kepala'));
+} else if (P.topi !== 'tiada') {
+  // Songkok
   const pos = pusatKepala.clone().add(V(0, 0.158, -0.012));
   const g = tx(new THREE.CylinderGeometry(0.196, 0.212, 0.115, 48, 2), { r: [-7, 0, 0], p: pos.toArray() });
   bahagianBadan.push(bahagian(g, WARNA.songkok, 'Kepala'));
+}
+// Misai (Pak Din)
+if (P.misai) {
+  for (const s of [1, -1]) {
+    const { p } = titikMuka(s * 0.03, -0.072, 0.004);
+    bahagianBadan.push(bahagian(tx(new THREE.CapsuleGeometry(0.011, 0.038, 4, 10), { r: [0, 0, s * 72], p: p.toArray() }), WARNA.misai, 'Kepala'));
+  }
+}
+// Cermin mata (Fikri)
+if (P.cerminMata) {
+  const kepala = posDunia('Kepala');
+  for (const m of [mataKiri, mataKanan]) {
+    const c = m.clone().add(kepala).add(V(0, 0, 0.072));
+    bahagianBadan.push(bahagian(tx(new THREE.TorusGeometry(0.064, 0.0065, 8, 32), { p: c.toArray() }), P.cerminMata, 'Kepala'));
+    // Tangkai ke telinga
+    const sisi = Math.sign(m.x);
+    bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.005, 0.005, 0.2, 6), { r: [90, 0, 0], p: [sisi * 0.215, c.y + 0.01, c.z - 0.1] }), P.cerminMata, 'Kepala'));
+  }
+  const tengah = mataKiri.clone().add(mataKanan).multiplyScalar(0.5).add(kepala).add(V(0, 0.015, 0.072));
+  bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.005, 0.005, 0.05, 6), { r: [0, 0, 90], p: tengah.toArray() }), P.cerminMata, 'Kepala'));
 }
 
 // --- Kelopak mata (separuh sfera, dikawal tulang Kelopak) ---
@@ -321,9 +393,15 @@ for (const [s, K] of [[1, 'Kiri'], [-1, 'Kanan']]) {
   const yBahu = Y('LenganAtas' + K), ySiku = Y('LenganBawah' + K), yTangan = Y('Tangan' + K);
   bahagianBadan.push(bahagian(tx(new THREE.SphereGeometry(0.05, 16, 12), { p: [x, yBahu, 0] }), WARNA.baju, 'LenganAtas' + K));
   bahagianBadan.push(bahagian(kapsul(0.042, yBahu, ySiku, x), WARNA.baju, beratAnggota('LenganAtas' + K, null, 'LenganBawah' + K, yBahu, ySiku)));
-  bahagianBadan.push(bahagian(kapsul(0.038, ySiku, yTangan + 0.01, x), WARNA.baju, beratAnggota('LenganBawah' + K, 'LenganAtas' + K, null, ySiku, yTangan)));
-  // Manset lengan
-  bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.041, 0.043, 0.025, 16), { p: [x, yTangan + 0.012, 0] }), WARNA.bajuGelap, 'LenganBawah' + K));
+  if (P.lenganPendek) {
+    // Lengan pendek: lengan bawah ialah kulit; hujung lengan baju di siku
+    bahagianBadan.push(bahagian(kapsul(0.035, ySiku, yTangan + 0.01, x), WARNA.kulit, beratAnggota('LenganBawah' + K, 'LenganAtas' + K, null, ySiku, yTangan)));
+    bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.046, 0.046, 0.03, 16), { p: [x, ySiku + 0.035, 0] }), WARNA.bajuGelap, 'LenganAtas' + K));
+  } else {
+    bahagianBadan.push(bahagian(kapsul(0.038, ySiku, yTangan + 0.01, x), WARNA.baju, beratAnggota('LenganBawah' + K, 'LenganAtas' + K, null, ySiku, yTangan)));
+    // Manset lengan
+    bahagianBadan.push(bahagian(tx(new THREE.CylinderGeometry(0.041, 0.043, 0.025, 16), { p: [x, yTangan + 0.012, 0] }), WARNA.bajuGelap, 'LenganBawah' + K));
+  }
   // Tapak tangan & ibu jari
   bahagianBadan.push(bahagian(tx(new THREE.SphereGeometry(0.042, 16, 12), { s: [0.78, 1.05, 0.92], p: [x, yTangan - 0.04, 0] }), WARNA.kulit, 'Tangan' + K));
   bahagianBadan.push(bahagian(tx(new THREE.CapsuleGeometry(0.014, 0.02, 4, 8), { r: [25, 0, 0], p: [x, yTangan - 0.03, 0.03] }), WARNA.kulit, 'Tangan' + K));
@@ -333,8 +411,13 @@ for (const [s, K] of [[1, 'Kiri'], [-1, 'Kanan']]) {
 for (const [s, K] of [[1, 'Kiri'], [-1, 'Kanan']]) {
   const x = posDunia('Paha' + K).x;
   const yPaha = Y('Paha' + K), yLutut = Y('Betis' + K), yKaki = Y('Kaki' + K);
-  bahagianBadan.push(bahagian(kapsul(0.055, yPaha + 0.02, yLutut, x), WARNA.baju, beratAnggota('Paha' + K, null, 'Betis' + K, yPaha, yLutut)));
-  bahagianBadan.push(bahagian(kapsul(0.047, yLutut, yKaki + 0.01, x), WARNA.baju, beratAnggota('Betis' + K, 'Paha' + K, null, yLutut, yKaki)));
+  // Kain pelikat (corak petak) atau warna seluar
+  const warnaKaki = P.kainPelikat
+    ? (v) => P.kainPelikat[(Math.floor((v.y + 2) * 22) + Math.floor((Math.atan2(v.x - x, v.z) + 4) * 2.5)) % 3]
+    : WARNA.seluar;
+  const rKaki = P.kainPelikat ? 1.18 : 1; // kain lebih longgar
+  bahagianBadan.push(bahagian(kapsul(0.055 * rKaki, yPaha + 0.02, yLutut, x), warnaKaki, beratAnggota('Paha' + K, null, 'Betis' + K, yPaha, yLutut)));
+  bahagianBadan.push(bahagian(kapsul(0.047 * rKaki, yLutut, yKaki + 0.01, x), warnaKaki, beratAnggota('Betis' + K, 'Paha' + K, null, yLutut, yKaki)));
   bahagianBadan.push(bahagian(tx(new THREE.CapsuleGeometry(0.045, 0.085, 6, 16), { r: [90, 0, 0], s: [1, 0.75, 1], p: [x, yKaki - 0.046, 0.03] }), WARNA.kasut, 'Kaki' + K));
 }
 
@@ -414,7 +497,7 @@ const bahanWajah = new THREE.MeshStandardMaterial({ name: 'BahanWajah', vertexCo
 const bahanMata = new THREE.MeshStandardMaterial({ name: 'BahanMata', vertexColors: true, roughness: 0.12, metalness: 0 });
 
 const akarKarakter = new THREE.Group();
-akarKarakter.name = 'Amir';
+akarKarakter.name = ID_WATAK ? ID_WATAK.charAt(0).toUpperCase() + ID_WATAK.slice(1) : 'Amir';
 akarKarakter.add(tulang.Akar);
 
 const meshBadan = new THREE.SkinnedMesh(gabung(bahagianBadan), bahanBadan); meshBadan.name = 'Badan';
@@ -594,16 +677,146 @@ klip.push(binaKlip('Gembira', 0.8, (t) => {
 }));
 
 // ============================================================
+// 8b. KLIP SIRI "BORAK KEDAI KOPI" (hanya apabila --watak diberi)
+//     Versi duduk menyertakan pose kaki duduk dalam setiap klip supaya
+//     adunan (blend) antara klip duduk tidak menarik kaki ke pose berdiri.
+// ============================================================
+if (ID_WATAK) {
+  const DUDUK_Y = 0.37; // ketinggian pinggul ketika duduk (bangku ± 0.28 unit model)
+  const kakiDuduk = (o = {}) => ({
+    _pinggul: [0, DUDUK_Y, 0],
+    PahaKiri: [-88, 0, 5], BetisKiri: [86, 0, 0], KakiKiri: [2, 0, 0],
+    PahaKanan: [-88, 0, -5], BetisKanan: [86, 0, 0], KakiKanan: [2, 0, 0],
+    ...o,
+  });
+  // Tangan berehat di atas meja
+  const tanganMeja = {
+    LenganAtasKiri: [-28, 0, 10], LenganBawahKiri: [-58, -10, 0], TanganKiri: [12, 0, 0],
+    LenganAtasKanan: [-28, 0, -10], LenganBawahKanan: [-58, 10, 0], TanganKanan: [12, 0, 0],
+  };
+
+  // DUDUK: rehat sambil duduk (4 s, gelung)
+  klip.push(binaKlip('Duduk', 4, (t) => {
+    const p = (t / 4) * PI2;
+    return kakiDuduk({
+      _pinggul: [0, DUDUK_Y + 0.003 * sin(2 * p), 0],
+      TulangBelakang: [2 + 1 * sin(2 * p), 0, 0], Dada: [-1.5 * sin(2 * p), 2 * sin(p), 0],
+      Kepala: [1.5 * sin(2 * p + 1), 4 * sin(p), 2 * sin(p + 0.5)],
+      ...tanganMeja,
+    });
+  }));
+
+  // DUDUK BERCAKAP: gerak isyarat tangan sambil duduk (4 s, gelung)
+  klip.push(binaKlip('DudukBercakap', 4, (t) => {
+    const p = (t / 4) * PI2;
+    return kakiDuduk({
+      TulangBelakang: [5, 0, 0], Dada: [2 * sin(2 * p), 8 * sin(p), 2 * sin(p)],
+      Kepala: [4 * sin(3 * p), -5 * sin(p), 3 * sin(p + 1)],
+      LenganAtasKanan: [-35 - 15 * pos(sin(p)), 0, -14], LenganBawahKanan: [-55 - 25 * pos(sin(p)), 20, 0], TanganKanan: [10, 0, -20],
+      LenganAtasKiri: [-28 - 12 * pos(sin(p + Math.PI)), 0, 12], LenganBawahKiri: [-55 - 25 * pos(sin(p + Math.PI)), -20, 0], TanganKiri: [10, 0, 20],
+    });
+  }));
+
+  // DUDUK KETAWA: badan bergegar ketawa (1 s, gelung)
+  klip.push(binaKlip('DudukKetawa', 1, (t) => {
+    const ph = t * PI2;
+    const g = sin(ph * 3);
+    return kakiDuduk({
+      _pinggul: [0, DUDUK_Y + 0.004 * pos(g), 0],
+      TulangBelakang: [-6 + 3 * g, 0, 0], Dada: [-6 + 3 * g, 0, 2 * sin(ph)], Kepala: [-12 + 4 * g, 0, 3 * sin(ph)],
+      LenganAtasKiri: [-30, 0, 18], LenganBawahKiri: [-70, -30, 0], TanganKiri: [0, 0, 10],
+      LenganAtasKanan: [-30, 0, -18], LenganBawahKanan: [-70, 30, 0], TanganKanan: [0, 0, -10],
+    });
+  }));
+
+  // DUDUK MENGANGGUK & MENGGELENG (1.2 s, gelung)
+  klip.push(binaKlip('DudukMengangguk', 1.2, (t) => {
+    const ph = (t / 1.2) * PI2;
+    return kakiDuduk({ TulangBelakang: [3, 0, 0], Leher: [4 * sin(ph), 0, 0], Kepala: [9 * sin(ph), 0, 0], ...tanganMeja });
+  }));
+  klip.push(binaKlip('DudukMenggeleng', 1.2, (t) => {
+    const ph = (t / 1.2) * PI2;
+    return kakiDuduk({ TulangBelakang: [3, 0, 0], Leher: [0, 6 * sin(ph), 0], Kepala: [2, 14 * sin(ph), 0], ...tanganMeja });
+  }));
+
+  // DUDUK MINUM: angkat cawan ke mulut dengan tangan kanan (3 s)
+  klip.push(binaKlip('DudukMinum', 3, (t) => {
+    const k = lancar((t - 0.3) / 0.7) * (1 - lancar((t - 2.1) / 0.7));
+    const hirup = lancar((t - 1.0) / 0.4) * (1 - lancar((t - 1.8) / 0.3));
+    // Sudut dicari secara berangka (jarak bibir cawan ke mulut ± 3 cm):
+    // kepala kartun besar => badan condong ke depan & lengan atas diangkat ± 100°
+    return kakiDuduk({
+      TulangBelakang: [2 + 9 * k, 0, 0], Dada: [7 * k - 2 * hirup, 0, 0], Kepala: [-10 * k - 4 * hirup, 0, 0],
+      LenganAtasKiri: [-28, 0, 10], LenganBawahKiri: [-58, -10, 0], TanganKiri: [12, 0, 0],
+      LenganAtasKanan: [-28 - 72 * k, 0, -10 + 40 * k], LenganBawahKanan: [-58 - 12 * k, 10 + 40 * k, 0], TanganKanan: [12 - 15 * hirup, 0, 0],
+    });
+  }));
+
+  // BERDIRI: KETAWA, MENGANGGUK, MENGGELENG
+  klip.push(binaKlip('Ketawa', 1, (t) => {
+    const ph = t * PI2, g = sin(ph * 3);
+    return {
+      _pinggul: [0, PINGGUL_Y + 0.004 * pos(g), 0],
+      TulangBelakang: [-6 + 3 * g, 0, 0], Dada: [-6 + 3 * g, 0, 2 * sin(ph)], Kepala: [-12 + 4 * g, 0, 3 * sin(ph)],
+      LenganAtasKiri: [-20, 0, 20], LenganBawahKiri: [-75, -35, 0], LenganAtasKanan: [-20, 0, -20], LenganBawahKanan: [-75, 35, 0],
+    };
+  }));
+  klip.push(binaKlip('Mengangguk', 1.2, (t) => {
+    const ph = (t / 1.2) * PI2;
+    return { Leher: [4 * sin(ph), 0, 0], Kepala: [9 * sin(ph), 0, 0], LenganAtasKiri: [0, 0, 7], LenganAtasKanan: [0, 0, -7], LenganBawahKiri: [-10, 0, 0], LenganBawahKanan: [-10, 0, 0] };
+  }));
+  klip.push(binaKlip('Menggeleng', 1.2, (t) => {
+    const ph = (t / 1.2) * PI2;
+    return { Leher: [0, 6 * sin(ph), 0], Kepala: [2, 14 * sin(ph), 0], LenganAtasKiri: [0, 0, 7], LenganAtasKanan: [0, 0, -7], LenganBawahKiri: [-10, 0, 0], LenganBawahKanan: [-10, 0, 0] };
+  }));
+
+  // SILANG TANGAN: berdiri bersilang tangan (4 s, gelung)
+  klip.push(binaKlip('SilangTangan', 4, (t) => {
+    const p = (t / 4) * PI2;
+    return {
+      _pinggul: [0, PINGGUL_Y + 0.003 * sin(2 * p), 0],
+      Dada: [-2 - 1.5 * sin(2 * p), 3 * sin(p), 0], Kepala: [2 * sin(2 * p + 1), 5 * sin(p), 2],
+      LenganAtasKiri: [-30, 0, 14], LenganBawahKiri: [-95, -70, 0], TanganKiri: [0, 0, 0],
+      LenganAtasKanan: [-26, 0, -14], LenganBawahKanan: [-88, 70, 0], TanganKanan: [0, 0, 0],
+    };
+  }));
+
+  // MENGELAP MEJA: badan condong, tangan kanan berpusing (2 s, gelung)
+  klip.push(binaKlip('MengelapMeja', 2, (t) => {
+    const ph = (t / 2) * PI2;
+    return {
+      _pinggul: [0, PINGGUL_Y - 0.01, 0],
+      TulangBelakang: [14, 0, 0], Dada: [8, 6 * sin(ph), 0], Kepala: [-14, -4 * sin(ph), 0],
+      LenganAtasKanan: [-55 + 10 * sin(ph), 0, -12 + 12 * cos(ph)], LenganBawahKanan: [-35 + 10 * cos(ph), 0, 0], TanganKanan: [20, 0, 0],
+      LenganAtasKiri: [-20, 0, 14], LenganBawahKiri: [-40, 0, 0], TanganKiri: [10, 0, 0],
+    };
+  }));
+
+  // MENUANG KOPI: angkat cerek dengan tangan kanan & tuang (3 s)
+  klip.push(binaKlip('MenuangKopi', 3, (t) => {
+    const k = lancar(t / 0.6) * (1 - lancar((t - 2.3) / 0.6));
+    const tuang = lancar((t - 0.8) / 0.5) * (1 - lancar((t - 1.9) / 0.4));
+    return {
+      TulangBelakang: [6 * k, 0, 0], Dada: [4 * k, -6 * k, 0], Kepala: [-6 * k, -6 * k, 0],
+      LenganAtasKanan: [-50 * k, 0, -10 - 12 * k], LenganBawahKanan: [-55 * k, 0, 0], TanganKanan: [0, 0, -55 * tuang],
+      LenganAtasKiri: [-35 * k, 0, 10], LenganBawahKiri: [-60 * k, -20 * k, 0], TanganKiri: [0, 0, 0],
+    };
+  }));
+}
+
+// ============================================================
 // 9. EKSPORT KE GLB
 // ============================================================
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const fail = path.resolve(__dirname, '../assets/model/amir.glb');
+const fail = ID_WATAK
+  ? path.resolve(__dirname, `../assets/model/watak/${ID_WATAK}.glb`)
+  : path.resolve(__dirname, '../assets/model/amir.glb');
 const exporter = new GLTFExporter();
 exporter.parse(akarKarakter, (hasil) => {
   fs.mkdirSync(path.dirname(fail), { recursive: true });
   fs.writeFileSync(fail, Buffer.from(hasil));
   const kb = (fs.statSync(fail).size / 1024).toFixed(1);
-  console.log(`✔ Karakter Amir dieksport: ${fail} (${kb} KB)`);
+  console.log(`✔ Karakter ${akarKarakter.name} dieksport: ${fail} (${kb} KB)`);
   console.log(`  Tulang: ${senaraiObjTulang.length} | Morph: ${NAMA_MORPH.join(', ')}`);
   console.log(`  Klip animasi: ${klip.map((k) => k.name).join(', ')}`);
 }, (err) => { console.error('Ralat eksport:', err); process.exit(1); }, { binary: true, animations: klip });

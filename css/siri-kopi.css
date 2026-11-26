@@ -1,0 +1,4 @@
+/* Siri "TAHU TAK? – BORAK KEDAI KOPI": warna nama penutur dalam sari kata */
+#sarikata-nama[data-watak="amir"] { color: #4fd1c5; }
+#sarikata-nama[data-watak="fikri"] { color: #8fbaff; }
+#sarikata-nama[data-watak="pakdin"] { color: #f2c14e; }
