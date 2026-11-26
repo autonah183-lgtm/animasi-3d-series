@@ -1,0 +1,36 @@
+# Terbitkan animasi ke GitHub Pages secara automatik setiap kali kod ditolak ke cawangan main.
+# Aktifkan sekali sahaja: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+name: Terbit ke GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  terbit:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sediakan fail laman
+        run: |
+          mkdir _laman
+          cp -r index.html manifest.webmanifest css js lib assets _laman/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _laman
+      - id: deployment
+        uses: actions/deploy-pages@v4
