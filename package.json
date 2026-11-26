@@ -1,0 +1,23 @@
+{
+  "name": "animasi-3d-series",
+  "version": "1.0.0",
+  "description": "Siri animasi 3D Amir & Cahaya Ajaib (Three.js)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "bina:karakter": "node tools/bina-karakter.mjs",
+    "salin:three": "node tools/salin-three.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/autonah183-lgtm/animasi-3d-series.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/autonah183-lgtm/animasi-3d-series/issues"
+  },
+  "homepage": "https://github.com/autonah183-lgtm/animasi-3d-series#readme",
+  "devDependencies": {
+    "three": "^0.180.0"
+  }
+}
