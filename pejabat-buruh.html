@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0b0d12" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Realiti Kehidupan Malaysia, Episod 1: Apa Itu Pejabat Buruh? — animasi pendidikan 3D" />
+  <title>Apa Itu Pejabat Buruh? — Realiti Kehidupan Malaysia</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/ikon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/gaya.css" />
+  <link rel="stylesheet" href="css/pendidikan.css" />
+  <!--
+    Peta import:
+    - Three.js disimpan secara setempat dalam lib/
+    - Baris terakhir MENGHALAKAN babak lalai yang diimport oleh js/main.js
+      (episod1-babak1.js) kepada babak pendidikan ini. Oleh itu main.js dan
+      enjin animasi TIDAK perlu diubah, dan episod asal kekal di index.html.
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./lib/three/three.module.min.js",
+        "three/addons/": "./lib/three/addons/",
+        "./js/babak/episod1-babak1.js": "./js/babak/realiti-e1-pejabat-buruh.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Pentas 3D -->
+  <div id="pentas"></div>
+
+  <!-- Lapisan sinematik -->
+  <div class="letterbox atas" id="lb-atas"></div>
+  <div class="letterbox bawah" id="lb-bawah"></div>
+  <div id="vignet"></div>
+  <div id="fade"></div>
+
+  <div id="kredit">
+    <h1 id="kredit-utama"></h1>
+    <p id="kredit-kecil"></p>
+  </div>
+
+  <div id="sarikata" aria-live="polite">
+    <span id="sarikata-nama"></span>
+    <span id="sarikata-teks"></span>
+  </div>
+
+  <!-- Ikon besar di tengah (maklum balas main/jeda) -->
+  <div id="ikon-tengah" aria-hidden="true"></div>
+
+  <!-- Bar kawalan -->
+  <div id="kawalan" class="sembunyi">
+    <button id="btn-main" class="btn" aria-label="Main / Jeda" title="Main / Jeda"></button>
+    <button id="btn-ulang" class="btn" aria-label="Ulang dari mula" title="Ulang dari mula">
+      <svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+    </button>
+    <div id="garis-masa" role="slider" aria-label="Garis masa" tabindex="0">
+      <div id="garis-isi"></div>
+      <div id="garis-tombol"></div>
+    </div>
+    <span id="paparan-masa">0:00 / 2:00</span>
+    <button id="btn-cc" class="btn aktif" aria-label="Sari kata" title="Sari kata"><span class="teks-btn">CC</span></button>
+    <button id="btn-bunyi" class="btn" aria-label="Bunyi" title="Bunyi"></button>
+    <button id="btn-skrin" class="btn" aria-label="Skrin penuh" title="Skrin penuh">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5v2H6v3H4zm10-5h6v5h-2V6h-4V4zM6 15v3h3v2H4v-5h2zm12 0h2v5h-5v-2h3v-3z"/></svg>
+    </button>
+  </div>
+
+  <!-- Skrin mula -->
+  <div id="skrin-mula">
+    <div class="kad-mula">
+      <div class="lencana">REALITI KEHIDUPAN MALAYSIA</div>
+      <h1>Apa Itu <span>Pejabat Buruh?</span></h1>
+      <p class="sub">Episod 1 · Animasi pendidikan bersama Amir · 2 minit</p>
+      <div id="muat-bekas"><div id="muat-bar"></div></div>
+      <p id="muat-teks">Memuatkan dunia 3D...</p>
+      <button id="btn-mula" disabled>
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Mula Tonton
+      </button>
+      <p class="petua">🎧 Hidupkan bunyi · 📱 Pusingkan telefon ke mod landskap untuk pengalaman terbaik</p>
+      <p class="petua">Maklumat umum berdasarkan sumber rasmi JTK. Untuk kes anda, sila rujuk pejabat JTK. · <a href="episod.html">Senarai episod</a></p>
+    </div>
+  </div>
+
+  <div id="ralat" hidden></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

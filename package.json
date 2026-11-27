@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "bina:karakter": "node tools/bina-karakter.mjs",
-    "salin:three": "node tools/salin-three.mjs"
+    "salin:three": "node tools/salin-three.mjs",
+    "bina:siri": "node tools/bina-karakter.mjs --watak amir && node tools/bina-karakter.mjs --watak fikri && node tools/bina-karakter.mjs --watak pakdin"
   },
   "repository": {
     "type": "git",

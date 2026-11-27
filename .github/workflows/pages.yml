@@ -27,7 +27,7 @@ jobs:
       - name: Sediakan fail laman
         run: |
           mkdir _laman
-          cp -r index.html manifest.webmanifest css js lib assets _laman/
+          cp -r *.html manifest.webmanifest css js lib assets _laman/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

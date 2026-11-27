@@ -178,3 +178,119 @@ Semuanya dikira daripada masa `t` (deterministik) — jadi babak boleh dijeda, d
 
 ## Lesen
 Kod projek: MIT. Three.js: MIT (lihat `lib/three/LICENSE`).
+
+---
+
+## 🇲🇾 Siri Pendidikan: Realiti Kehidupan Malaysia
+
+| Episod | Halaman | Fail babak | Durasi |
+|---|---|---|---|
+| 1 · Apa Itu Pejabat Buruh? | `pejabat-buruh.html` | `js/babak/realiti-e1-pejabat-buruh.js` | 2:00 |
+| (Cerita asal) Amir & Cahaya Ajaib | `index.html` | `js/babak/episod1-babak1.js` | 0:45 |
+
+Senarai semua episod: `episod.html`.
+
+### Bagaimana episod pendidikan dimainkan tanpa mengubah enjin
+`js/main.js` mengimport `./babak/episod1-babak1.js`. Halaman `pejabat-buruh.html` menambah satu baris
+dalam *import map* yang menghalakan import itu ke fail babak pendidikan:
+```json
+"./js/babak/episod1-babak1.js": "./js/babak/realiti-e1-pejabat-buruh.js"
+```
+Oleh itu `main.js`, `Pengarah.js`, `Karakter.js` dan episod asal **tidak diubah**, dan `index.html`
+masih memainkan episod asal. Gaya panel fakta ada dalam `css/pendidikan.css` (dimuatkan oleh halaman pendidikan sahaja).
+
+### Menambah episod pendidikan baharu
+1. Salin `js/babak/realiti-e1-pejabat-buruh.js` → `realiti-e2-<topik>.js`, ubah kandungan.
+2. Salin `pejabat-buruh.html` → `<topik>.html`, tukar baris import map & teks skrin mula.
+3. Tambah kad dalam `episod.html`.
+
+Panduan masa (lihat komen dalam fail babak):
+- Dialog disusun automatik oleh `babakDialog()`: tempoh baris = huruf × 0.075 s + 0.75 s
+  (enjin menggerakkan bibir selama huruf × 0.068 s), jeda 0.35 s antara baris — ± 11 huruf/saat.
+- Setiap kad fakta perlu tajuk (`utama`) yang **unik**, dan masa paparan ≥ jumlah huruf ÷ 14 saat.
+- Sari kata: maksimum ± 80 aksara sebaris dialog.
+
+> ⚠️ Kandungan pendidikan ialah maklumat umum berdasarkan sumber rasmi (JTKSM, Akta Kerja 1955,
+> JTK Sabah, JTK Sarawak) yang disemak pada November 2026. Sahkan semula sebelum diterbitkan.
+
+### Saluran & sumber rasmi yang dipaparkan dalam Episod 1
+| Perkara | Maklumat | Rujukan |
+|---|---|---|
+| Laman web JTKSM | jtksm.mohr.gov.my | JTKSM |
+| E-mel JTKSM | jtksm@mohr.gov.my | JTKSM — Ibu Pejabat & Cawangan |
+| Telefon ibu pejabat | 03-8000 8000 (Pegawai Khidmat Pelanggan: 03-8886 5192 / 5937) | JTKSM — Ibu Pejabat & Cawangan |
+| Aduan dalam talian | SISPAA KESUMA (mohr.spab.gov.my), aplikasi Working for Workers | JTKSM — Aduan |
+| Sabah / Sarawak | jtksabah.gov.my · jtkswk.gov.my (Ordinan Buruh dipinda, berkuat kuasa 1 Mei 2025) | KESUMA, JTK Sarawak |
+| Had RM4,000 | Pekerja bergaji > RM4,000 **tetap dilindungi** Akta Kerja 1955; hanya bayaran kerja lebih masa, kerja hari rehat, kerja hari kelepasan am & faedah penamatan tidak automatik (kecuali pekerja manual) | JTKSM — Soalan Lazim Akta Kerja 1955 (Pindaan) 2022 |
+
+Semakan automatik masa episod (dialog, gerak bibir, kad, kamera, 120 s) dibuat dengan skrip semakan;
+jadual bahagian ada di bahagian atas `js/babak/realiti-e1-pejabat-buruh.js` (`BAHAGIAN`).
+
+---
+
+## ☕ Siri: TAHU TAK? – BORAK KEDAI KOPI (Fasa 1: asas teknikal)
+
+Tiga watak tetap berbual di **Warung Pak Din**:
+| Watak | Peranan | Model | Skala |
+|---|---|---|---|
+| Amir | Remaja, suka bertanya | `assets/model/watak/amir.glb` | 1.10 |
+| Fikri | Remaja, suka berkongsi pengetahuan (berkemeja, bercermin mata) | `assets/model/watak/fikri.glb` | 1.14 |
+| Pak Din | Pemilik warung, kelakar & berpengalaman (kopiah, misai, apron, kain pelikat) | `assets/model/watak/pakdin.glb` | 1.30 |
+
+Episod:
+| Halaman | Episod | Fail babak |
+|---|---|---|
+| **`kopi-e01-gaji.html`** | 01 — Eh, Gaji Aku Mana? (2:00) — Seksyen 19 Akta Kerja 1955, Pejabat Buruh, cara aduan, dokumen | `js/babak/siri-kopi/e01-gaji-aku-mana.js` |
+| `kopi-ujian.html` | Babak ujian teknikal (± 33 s, bukan episod) | `js/babak/siri-kopi/ujian.js` |
+
+### Fail baharu
+| Fail | Fungsi |
+|---|---|
+| `js/sinematik/PengarahSiri.js` | Pengarah berbilang watak (mewarisi `Pengarah.js` yang tidak diubah) |
+| `js/dunia/Warung.js` | Set Warung Pak Din + `kosongkanKawasan()` (buang rumput/semak di kawasan set) |
+| `js/babak/siri-kopi/watak.js` | Tetapan tetap watak (model, skala, suara) & susun atur warung (`TEMPAT`) |
+| `js/babak/siri-kopi/kamera.js` | Syot siap: `pembukaan`, `tigaWatak`, `duaWatak`, `dekat`, `atasBahu` |
+| `js/babak/siri-kopi/bantu.js` | `dialogBerturut()` berbilang penutur & `semakBabak()` |
+| `js/babak/siri-kopi/_templat.js` | Templat episod 2 minit |
+| `js/babak/siri-kopi/ujian.js` | Babak ujian teknikal |
+| `tools/watak-profil.mjs` | Profil rupa Amir / Fikri / Pak Din untuk penjana |
+| `css/siri-kopi.css` | Warna nama penutur dalam sari kata |
+
+### Fail sedia ada yang diubah
+- **`js/main.js`** — cabang `if (babak.watak)`: muat semua model watak, `babak.set()` & `PengarahSiri`
+  (dimuat secara dinamik). Blok `else` = kod asal. Satu baris: sambung dialog guna suara watak.
+- **`tools/bina-karakter.mjs`** — pilihan `--watak <id>` + klip siri. Tanpa pilihan, `assets/model/amir.glb`
+  dijana **sama bait demi bait** seperti sebelum ini (disahkan dengan `cmp`).
+
+### Format babak berbilang watak
+```js
+watak: { amir: watakEpisod('amir', { asas: 'Duduk', laluan, animasi, ekspresi, pandangan }), fikri: ..., pakdin: ... },
+set: (konteks) => binaWarung(konteks, tetapanWarung()),
+prop: [{ nama: 'cawanAmir', watak: 'amir', tulang: 'TanganKanan', mula, tamat, pos, rot }],
+dialog: dialogBerturut(mula, [['amir', 'Teks', { kepada: 'fikri' }], ['fikri', 'Teks']]),
+kamera: [pembukaan(0, 5), atasBahu('amir', 'fikri', 5, 10), tigaWatak(10, 20), ...],
+```
+- **Pandangan automatik:** pendengar memandang penutur; penutur memandang `kepada` (atau penutur sebelumnya).
+  Kunci `pandangan` manual ditambah di atasnya (cth. `{ t, sasaran: null }` untuk pandang ke depan).
+- **Suara:** pic/kadar TTS berbeza setiap watak (`watak.js`).
+- **`sebut`:** teks suara berbeza daripada sari kata, cth. `['amir', 'Seksyen 19', { sebut: 'Seksyen sembilan belas' }]`.
+- **Tempo:** `dialogBerturut(mula, baris, { sehuruf, penampan, jeda })` untuk episod padat; isytiharkan
+  `tempo` dalam babak supaya `semakBabak()` menyemak dengan tempo yang sama, dan lajukan `suara.kadar` sepadan.
+- **Ikat pada dialog:** dalam E01, gerak badan, ekspresi, kad & kamera dirujuk melalui `L.<kunci>` (masa baris),
+  jadi mengubah ayat tidak merosakkan masa babak.
+- **Kad padat:** `<body class="kad-padat">` meletakkan kad maklumat kecil di penjuru kiri atas.
+- **Klip siri:** `Duduk`, `DudukBercakap`, `DudukKetawa`, `DudukMengangguk`, `DudukMenggeleng`, `DudukMinum`,
+  `Ketawa`, `Mengangguk`, `Menggeleng`, `SilangTangan`, `MengelapMeja`, `MenuangKopi`.
+  Klip duduk mengandungi pose kaki duduk supaya adunan antara klip duduk tidak menarik kaki ke pose berdiri.
+
+### Jana semula model watak
+```bash
+npm install          # sekali sahaja
+npm run bina:siri    # assets/model/watak/{amir,fikri,pakdin}.glb
+```
+
+### Episod baharu
+1. Salin `js/babak/siri-kopi/_templat.js` → `e1-<topik>.js`.
+2. Salin `kopi-ujian.html` → `kopi-e1-<topik>.html`, tukar baris import map ke fail babak baharu.
+3. Semak masa dengan `semakBabak()` dalam konsol pelayar:
+   `(await import('./js/babak/siri-kopi/bantu.js')).semakBabak(__animasi.babak)` → `[]` bermaksud lulus.
