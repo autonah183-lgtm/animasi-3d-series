@@ -237,7 +237,11 @@ Tiga watak tetap berbual di **Warung Pak Din**:
 | Fikri | Remaja, suka berkongsi pengetahuan (berkemeja, bercermin mata) | `assets/model/watak/fikri.glb` | 1.14 |
 | Pak Din | Pemilik warung, kelakar & berpengalaman (kopiah, misai, apron, kain pelikat) | `assets/model/watak/pakdin.glb` | 1.30 |
 
-Babak ujian: **`kopi-ujian.html`** (± 33 s, bukan episod).
+Episod:
+| Halaman | Episod | Fail babak |
+|---|---|---|
+| **`kopi-e01-gaji.html`** | 01 — Eh, Gaji Aku Mana? (2:00) — Seksyen 19 Akta Kerja 1955, Pejabat Buruh, cara aduan, dokumen | `js/babak/siri-kopi/e01-gaji-aku-mana.js` |
+| `kopi-ujian.html` | Babak ujian teknikal (± 33 s, bukan episod) | `js/babak/siri-kopi/ujian.js` |
 
 ### Fail baharu
 | Fail | Fungsi |
@@ -269,6 +273,12 @@ kamera: [pembukaan(0, 5), atasBahu('amir', 'fikri', 5, 10), tigaWatak(10, 20), .
 - **Pandangan automatik:** pendengar memandang penutur; penutur memandang `kepada` (atau penutur sebelumnya).
   Kunci `pandangan` manual ditambah di atasnya (cth. `{ t, sasaran: null }` untuk pandang ke depan).
 - **Suara:** pic/kadar TTS berbeza setiap watak (`watak.js`).
+- **`sebut`:** teks suara berbeza daripada sari kata, cth. `['amir', 'Seksyen 19', { sebut: 'Seksyen sembilan belas' }]`.
+- **Tempo:** `dialogBerturut(mula, baris, { sehuruf, penampan, jeda })` untuk episod padat; isytiharkan
+  `tempo` dalam babak supaya `semakBabak()` menyemak dengan tempo yang sama, dan lajukan `suara.kadar` sepadan.
+- **Ikat pada dialog:** dalam E01, gerak badan, ekspresi, kad & kamera dirujuk melalui `L.<kunci>` (masa baris),
+  jadi mengubah ayat tidak merosakkan masa babak.
+- **Kad padat:** `<body class="kad-padat">` meletakkan kad maklumat kecil di penjuru kiri atas.
 - **Klip siri:** `Duduk`, `DudukBercakap`, `DudukKetawa`, `DudukMengangguk`, `DudukMenggeleng`, `DudukMinum`,
   `Ketawa`, `Mengangguk`, `Menggeleng`, `SilangTangan`, `MengelapMeja`, `MenuangKopi`.
   Klip duduk mengandungi pose kaki duduk supaya adunan antara klip duduk tidak menarik kaki ke pose berdiri.

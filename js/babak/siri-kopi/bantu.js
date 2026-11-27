@@ -12,16 +12,21 @@ export const JEDA = 0.4;
 
 /**
  * @param {number} mula
- * @param {Array} baris  [['amir', 'Teks...'], ['fikri', 'Teks...', { kepada: 'amir', jeda: 0.8 }], ...]
- * @returns {Array} dialog { mula, tamat, watak, teks, kepada? }
+ * @param {Array} baris  [['amir', 'Teks...'], ['fikri', 'Teks...', { kepada: 'amir', jeda: 0.8, sebut: '...' }], ...]
+ *   sebut (pilihan): teks untuk suara TTS jika berbeza daripada sari kata,
+ *   cth. nombor & singkatan: 'Seksyen 19' -> 'Seksyen sembilan belas'. Masa dikira ikut teks yang lebih panjang.
+ * @param {object} [tempo]  { sehuruf, penampan, jeda } — lalai: SAAT_SEHURUF, PENAMPAN, JEDA
+ * @returns {Array} dialog { mula, tamat, watak, teks, kepada?, sebut? }
  */
-export function dialogBerturut(mula, baris) {
+export function dialogBerturut(mula, baris, { sehuruf = SAAT_SEHURUF, penampan = PENAMPAN, jeda = JEDA } = {}) {
   let t = mula;
   return baris.map(([watak, teks, o = {}]) => {
     t += o.jeda ?? 0;
-    const d = { mula: +t.toFixed(2), tamat: +(t + teks.length * SAAT_SEHURUF + PENAMPAN).toFixed(2), watak, teks };
+    const panjang = Math.max(teks.length, o.sebut ? o.sebut.length : 0);
+    const d = { mula: +t.toFixed(2), tamat: +(t + panjang * sehuruf + penampan).toFixed(2), watak, teks };
     if (o.kepada) d.kepada = o.kepada;
-    t = d.tamat + JEDA;
+    if (o.sebut) d.sebut = o.sebut;
+    t = d.tamat + jeda;
     return d;
   });
 }
@@ -29,13 +34,18 @@ export function dialogBerturut(mula, baris) {
 /** Masa tamat dialog terakhir dalam senarai */
 export const tamatDialog = (senarai) => senarai[senarai.length - 1].tamat;
 
-/** Semak babak. Pulangkan senarai masalah (kosong = lulus). */
+/**
+ * Semak babak. Pulangkan senarai masalah (kosong = lulus).
+ * Jika babak mengisytiharkan `tempo` (cth. suara dilajukan), tempoh minimum setiap
+ * baris dikira dengan b.tempo.sehuruf; jika tidak, 0.068 s sehuruf (kelajuan biasa).
+ */
 export function semakBabak(b, { bacaanSesaat = 14 } = {}) {
+  const sehuruf = b.tempo?.sehuruf ?? 0.068;
   const masalah = [];
   const d = [...b.dialog].sort((x, y) => x.mula - y.mula);
   d.forEach((x, i) => {
     if (i && x.mula < d[i - 1].tamat) masalah.push(`Dialog bertindih: "${x.teks}"`);
-    if (x.teks.length * 0.068 > x.tamat - x.mula - 0.1) masalah.push(`Gerak bibir terpotong: "${x.teks}"`);
+    if (Math.max(x.teks.length, (x.sebut || '').length) * sehuruf > x.tamat - x.mula - 0.1) masalah.push(`Gerak bibir terpotong: "${x.teks}"`);
     if (x.teks.length > 80) masalah.push(`Sari kata terlalu panjang (>80): "${x.teks}"`);
     if (b.watak && !b.watak[x.watak]) masalah.push(`Watak tidak wujud: ${x.watak}`);
     if (x.tamat > b.durasi) masalah.push(`Dialog melepasi durasi: "${x.teks}"`);

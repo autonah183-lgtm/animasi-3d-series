@@ -111,7 +111,7 @@ export class PengarahSiri extends Pengarah {
   /** Tuturkan dialog dengan suara watak berkenaan */
   cakapDialog(d) {
     const w = this.c[d.watak]?.w;
-    this.suara?.cakap(d.teks, w?.suara || {});
+    this.suara?.cakap(d.sebut || d.teks, w?.suara || {});
   }
 
   _poseWatak(id, t) {
@@ -129,7 +129,15 @@ export class PengarahSiri extends Pengarah {
     // Klip asas: 'Rehat' (berdiri) atau mengikut masa, cth. [[0,'Duduk'],[10,'Rehat']]
     const asas = typeof w.asas === 'string' ? w.asas : Array.isArray(w.asas) ? w.asas.filter((x) => x[0] <= t).pop()?.[1] || 'Rehat' : 'Rehat';
     senarai.push({ nama: asas, masa: t, berat: Math.max(0.0001, 1 - jumlah) });
-    this.watak[id].pose(senarai);
+    const kar = this.watak[id];
+    // Pandangan (Karakter.pandang) DITAMBAH di atas pose animasi. AnimationMixer three.js
+    // tidak menulis semula tulang jika nilai animasi sama seperti bingkai lepas (cth. klip
+    // 'Duduk' yang statik), jadi pandangan akan terkumpul dan kepala berpusing. Pulihkan
+    // dahulu nilai animasi bingkai lepas sebelum pose() — selamat sama ada mixer menulis atau tidak.
+    const simpan = (this._poseLeher ||= {});
+    if (simpan[id]) { kar.tulang.Leher.quaternion.copy(simpan[id][0]); kar.tulang.Kepala.quaternion.copy(simpan[id][1]); }
+    kar.pose(senarai);
+    simpan[id] = [kar.tulang.Leher.quaternion.clone(), kar.tulang.Kepala.quaternion.clone()];
   }
 
   _kemaskiniProp(t) {
@@ -209,7 +217,7 @@ export class PengarahSiri extends Pengarah {
       const kar = this.watak[id];
       const pitchMata = this._dalam(id, () => this._pandangan(t, k));
       const wajah = this._dalam(id, () => this._ekspresi(t));
-      const bibir = dialog && dialog.watak === id ? this._gerakBibir(t, dialog) : { A: 0, O: 0, kuat: 0 };
+      const bibir = dialog && dialog.watak === id ? this._gerakBibir(t, dialog.sebut ? { ...dialog, teks: dialog.sebut } : dialog) : { A: 0, O: 0, kuat: 0 };
       wajah.Buka_A = Math.max(wajah.Buka_A || 0, 0) * (1 - bibir.kuat) + bibir.A;
       wajah.Buka_O = Math.max(wajah.Buka_O || 0, 0) * (1 - bibir.kuat) + bibir.O;
       kar.setWajah(wajah);
